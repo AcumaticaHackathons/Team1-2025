@@ -1,0 +1,64 @@
+﻿<Dashboard>
+    <data-set>
+        <relations format-version="3" relations-version="20240201" main-table="Dashboard">
+            <link from="DashboardParameter (DashboardID)" to="Dashboard (DashboardID)" />
+            <link from="DashboardParameter (NoteID)" to="DashboardParameterKvExt (RecordID)" type="RowKvExt" />
+            <link from="Widget (DashboardID)" to="Dashboard (DashboardID)" type="WeakIfEmpty" isEmpty="OwnerName" />
+            <link from="Widget (NoteID)" to="WidgetKvExt (RecordID)" type="RowKvExt" />
+            <link from="SiteMap (ScreenID)" to="Dashboard (ScreenID)" />
+            <link from="MUIScreen (NodeID)" to="SiteMap (NodeID)" />
+            <link from="MUIWorkspace (WorkspaceID)" to="MUIScreen (WorkspaceID)" type="FromMaster" linkname="workspaceToScreen" split-location="yes" updateable="True" />
+            <link from="MUISubcategory (SubcategoryID)" to="MUIScreen (SubcategoryID)" type="FromMaster" updateable="True" />
+            <link from="MUITile (ScreenID)" to="SiteMap (ScreenID)" />
+            <link from="MUIWorkspace (WorkspaceID)" to="MUITile (WorkspaceID)" type="FromMaster" linkname="workspaceToTile" split-location="yes" updateable="True" />
+            <link from="MUIArea (AreaID)" to="MUIWorkspace (AreaID)" type="FromMaster" updateable="True" />
+            <link from="MUIPinnedScreen (NodeID, WorkspaceID)" to="MUIScreen (NodeID, WorkspaceID)" type="WeakIfEmpty" isEmpty="Username" />
+            <link from="MUIFavoriteWorkspace (WorkspaceID)" to="MUIWorkspace (WorkspaceID)" type="WeakIfEmpty" isEmpty="Username" />
+        </relations>
+        <layout>
+            <table name="Dashboard">
+                <table name="DashboardParameter" uplink="(DashboardID) = (DashboardID)">
+                    <table name="DashboardParameterKvExt" uplink="(NoteID) = (RecordID)" />
+                </table>
+                <table name="Widget" uplink="(DashboardID) = (DashboardID)">
+                    <table name="WidgetKvExt" uplink="(NoteID) = (RecordID)" />
+                </table>
+                <table name="SiteMap" uplink="(ScreenID) = (ScreenID)">
+                    <table name="MUIScreen" uplink="(NodeID) = (NodeID)">
+                        <table name="MUIPinnedScreen" uplink="(NodeID, WorkspaceID) = (NodeID, WorkspaceID)" />
+                    </table>
+                    <table name="MUITile" uplink="(ScreenID) = (ScreenID)" />
+                </table>
+            </table>
+            <table name="MUIWorkspace">
+                <table name="MUIFavoriteWorkspace" uplink="(WorkspaceID) = (WorkspaceID)" />
+            </table>
+            <table name="MUISubcategory" />
+            <table name="MUIArea" />
+        </layout>
+        <data>
+            <Dashboard>
+                <row DashboardID="1000223" Name="GanttChart" DefaultOwnerRole="Administrator" ScreenID="DB000042" AllowCopy="1" Workspace1Size="12" Workspace2Size="0" IsPortal="0" ExposeViaMobile="0" NoteID="d19c1b2f-6edb-ef11-84c4-38f3ab094332">
+                    <Widget WidgetID="2845" Caption="Gantt Chart" Column="0" Row="0" Workspace="0" Width="12" Height="510" Type="PX.Dashboards.Widgets.PXInlineFrameWidget" Settings="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;InlineFrameSettings&gt;&#xD;&#xA;  &lt;Source&gt;http://subportal.sghconcepts.com/schedule&lt;/Source&gt;&#xD;&#xA;&lt;/InlineFrameSettings&gt;" IsActive="1" NoteID="d7beaaba-6edb-ef11-84c4-38f3ab094332" />
+                    <SiteMap Title="GanttChart" Url="~/Frames/Default.aspx" NodeID="c5c70c6b-3805-427f-970e-bf402bce51cd" ParentID="00000000-0000-0000-0000-000000000000" SelectedUI="E">
+                        <MUIScreen IsPortal="0" WorkspaceID="bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb" Order="30" SubcategoryID="29d8e453-ee74-405d-abe1-930728d1f9ba">
+                            <MUIPinnedScreen IsPortal="0" Username="" IsPinned="1" />
+                        </MUIScreen>
+                    </SiteMap>
+                </row>
+            </Dashboard>
+            <MUIWorkspace>
+                <row IsPortal="1" WorkspaceID="bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb" Order="5" Title="Data Views" Icon="poll" IsSystem="1">
+                    <MUIFavoriteWorkspace IsPortal="0" Username="" IsFavorite="1" />
+                </row>
+                <row IsPortal="0" WorkspaceID="bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb" Order="32" Title="Data Views" Icon="poll" IsSystem="1">
+                    <MUIFavoriteWorkspace IsPortal="0" Username="" IsFavorite="1" />
+                </row>
+            </MUIWorkspace>
+            <MUISubcategory>
+                <row IsPortal="1" SubcategoryID="29d8e453-ee74-405d-abe1-930728d1f9ba" Order="1478" Name="Dashboards" Icon="" IsSystem="1" />
+                <row IsPortal="0" SubcategoryID="29d8e453-ee74-405d-abe1-930728d1f9ba" Order="1478" Name="Dashboards" Icon="" IsSystem="1" />
+            </MUISubcategory>
+        </data>
+    </data-set>
+</Dashboard>
