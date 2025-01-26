@@ -1,0 +1,359 @@
+{
+  "name": "AcumaticaSummit",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "labelIds": [
+            "INBOX",
+            "UNREAD"
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        -140
+      ],
+      "id": "a584acf3-c012-46f6-af98-f6ac9a5952a7",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tzCcEeQUNuKPlNRb",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Get Thread').item.json.messages }}",
+        "options": {
+          "systemMessage": "=You are an assistant that coordinates communication between a company and its vendors. When you receive emails from vendors with updates about their tasks, identify and process the email based on the following scenarios:\n\n1. Push the start date of the task:\nIf the email mentions a change in the start date for a task, output the updated StartDate. If no specific EndDate is provided, do not include \"EndDate\".\nIf the start date needs to be pushed by any number of days or weeks, calculate the new start date using {{ new Date().toString('YYYY/MM/DD') }} as today’s date and adjust accordingly.\n\n2. Change the end date of the task:\nIf the email mentions an updated end date for the task, output the updated EndDate. If no specific StartDate is provided, do not include \"StartDate\".\n\n3. If the email says the task was completed on a specific date, that means use that date as the end date.\n\n4. There could be cases where the email ask to change both dates. Start and End Date. \n\nIf the date says X days or weeks ago, subtract those days or weeks from today.\n\nif the date says it's done by, or expected by, it's refering to an specific EndDate in the format MM-DD-YYYY.\n\n{\"ProjectID\":{\"value\":\"<Replace with Project ID>\"}, \"ProjectTaskID\":{\"value\":\"<Replace with project task ID>\"}, \"StartDate\":{\"value\":\"<Replace with StartDate use format YYYY-MM-DD. If the StartDate is null just not include the node at all>\"}, \"EndDate\":{\"value\":\"<Replace with EndDate use format YYYY-MM-DD. If the EndDate is null just not include the node at all>\"}}\n\nPlease output the rendered JSON. Do not include any explanation. Just the raw json, Remove ```json\\n from the output and any \\n from the output."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        900,
+        -160
+      ],
+      "id": "f5798c38-8530-4b58-b72a-9de66e39adf7",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-2024-05-13",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.1,
+      "position": [
+        680,
+        300
+      ],
+      "id": "40369b8d-d5dd-4817-9b34-0c1a7b54916d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "TaVSP7F7IRhExz0s",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hackathon.acumatica.com/Alpha/entity/auth/login",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"name\": \"apitest\",\n  \"password\": \"Password1\",\n  \"tenant\": \"Company\"\n}\n",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        -140
+      ],
+      "id": "03539831-517f-4544-8672-c4ef2e8aff23",
+      "name": "Get Acumatica Credentials"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hackathon.acumatica.com/Alpha/entity/auth/logout",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Cookie",
+              "value": "={{ $('Edit Fields').item.json.ASPXAUTH }};{{ $('Edit Fields').item.json.ASPNETSessionId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1660,
+        100
+      ],
+      "id": "dcb6e411-d0eb-4af2-8a05-223a397e6f59",
+      "name": "Acumatica Logout"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "31cb963c-52b9-4945-8f76-cf7861804466",
+              "name": "ASPXAUTH",
+              "value": "={{ $json.headers['set-cookie'][3] }}",
+              "type": "string"
+            },
+            {
+              "id": "f690cb90-ccef-4342-a860-73fc98609e39",
+              "name": "ASPNETSessionId",
+              "value": "={{ $json.headers['set-cookie'][4] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        -140
+      ],
+      "id": "7ae56b8d-918c-430d-b204-6ffb8f80f750",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sessionHeaderValue = $input.first().json.ASPNETSessionId;\nconst regex = /ASP.NET_SessionId=([^;]+)/;\n\nreturn {\n  \"SessionId\": sessionHeaderValue.match(regex)\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        -140
+      ],
+      "id": "3d18217f-548d-4385-85e3-e0d9f3cf2149",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://hackathon.acumatica.com/Alpha/entity/Hackaton/24.200.001/ProjectTask/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Cookie",
+              "value": "={{ $('Edit Fields').item.json.ASPXAUTH }};{{ $('Edit Fields').item.json.ASPNETSessionId }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.parse($json.output) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1380,
+        20
+      ],
+      "id": "cce7167a-6637-47d2-a147-d99dcfcc37bc",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "UNREAD"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2120,
+        180
+      ],
+      "id": "e0ab966f-ef88-4688-ba72-3bf0e74e59ea",
+      "name": "Mark message as read",
+      "webhookId": "ff49159a-3c99-4ccc-b791-03c27d1f36e5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tzCcEeQUNuKPlNRb",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "get",
+        "threadId": "={{ $json.threadId }}",
+        "simple": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -60,
+        -140
+      ],
+      "id": "2cad4eb9-d7be-45b2-af39-4a09338b0a26",
+      "name": "Get Thread",
+      "webhookId": "92abd39b-1392-4d77-9046-5a74a06425e4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tzCcEeQUNuKPlNRb",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Acumatica Credentials": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Acumatica Logout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark message as read": {
+      "main": [
+        []
+      ]
+    },
+    "Get Thread": {
+      "main": [
+        [
+          {
+            "node": "Get Acumatica Credentials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Acumatica Logout": {
+      "main": [
+        [
+          {
+            "node": "Mark message as read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a0f68361-fdd2-40f4-ac7b-cbba173dd203",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7b6389d30cbdf2c73429fa66710b2ab28ac55bf51aa9f3504287997004ae7239"
+  },
+  "id": "fYayuvapKAvATEOs",
+  "tags": []
+}
